@@ -25,11 +25,11 @@ func get(key int) (string, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	for _, snippet := range storage {
+	for index := len(storage) - 1; index >= 0; index-- {
+		snippet := storage[index]
 		if snippet.key == key {
 			return snippet.value, nil
 		}
 	}
-
 	return "", nil
 }
