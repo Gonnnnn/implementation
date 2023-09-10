@@ -77,7 +77,7 @@ func main() {
 }
 
 func initializeStorage(fileName string) (*storage, error) {
-	fmt.Println("Loading the data...")
+	fmt.Println("Loading the data... test")
 
 	file, err := os.Stat(fileName)
 
