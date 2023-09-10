@@ -25,8 +25,8 @@ type NotFoundError struct {
 	message string
 }
 
-var keyValueDelimiter = ":"
-var recordDelimiter = "\n"
+var KeyValueDelimiter = ":"
+var RecordDelimiter = "\n"
 var byteRecordDelimiter = byte('\n')
 
 func New(filename string, hashMap map[string]int64, lastByteOffset int64) *storage {
@@ -42,8 +42,8 @@ func (s *storage) Set(key string, value string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if strings.Contains(value, keyValueDelimiter) || strings.Contains(value, recordDelimiter) {
-		return fmt.Errorf("value cannot contain (%s) or (%s)", keyValueDelimiter, recordDelimiter)
+	if strings.Contains(value, KeyValueDelimiter) || strings.Contains(value, RecordDelimiter) {
+		return fmt.Errorf("value cannot contain (%s) or (%s)", KeyValueDelimiter, RecordDelimiter)
 	}
 
 	file, err := os.OpenFile(s.fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -52,7 +52,7 @@ func (s *storage) Set(key string, value string) error {
 	}
 	defer file.Close()
 
-	bytes, err := file.WriteString(fmt.Sprintf("%s%s%s%s", key, keyValueDelimiter, value, recordDelimiter))
+	bytes, err := file.WriteString(fmt.Sprintf("%s%s%s%s", key, KeyValueDelimiter, value, RecordDelimiter))
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (s *storage) Get(key string) (string, error) {
 
 	offset, ok := s.hashMap[key]
 	if !ok {
-		return "", NewNotFoundError(key)
+		return "", newNotFoundError(key)
 	}
 
 	reader := bufio.NewReader(file)
@@ -90,7 +90,7 @@ func (s *storage) Get(key string) (string, error) {
 		}
 
 		if byteOffset == int64(offset) {
-			return strings.TrimSuffix(strings.Split(line, ":")[1], recordDelimiter), nil
+			return strings.TrimSuffix(strings.Split(line, ":")[1], RecordDelimiter), nil
 		}
 
 		byteOffset += int64(len(line))
@@ -105,7 +105,7 @@ func (s *storage) PrintHashMap() {
 	}
 }
 
-func NewNotFoundError(key string) *NotFoundError {
+func newNotFoundError(key string) *NotFoundError {
 	return &NotFoundError{
 		message: fmt.Sprintf("no value corresponding to the key: %s", key),
 	}

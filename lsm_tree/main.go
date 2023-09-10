@@ -119,7 +119,7 @@ func readStdin(message string) (string, error) {
 }
 
 func splitIntoKeyValue(input string) (string, string) {
-	parts := strings.Split(input, keyValueDelimiter)
+	parts := strings.Split(input, KeyValueDelimiter)
 	return parts[0], parts[1]
 }
 
