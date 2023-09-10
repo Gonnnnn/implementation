@@ -2,25 +2,35 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"sync"
 )
 
 type storage struct {
+	// The file name to store the data.
 	fileName string
-	mutex    *sync.Mutex
+	// A hash map containing byte offsets of the line in the file for each key.
+	hashMap map[string]int64
+	// Last byte offset of the file.
+	lastByteOffset int64
+	// A mutex to lock the file.
+	mutex *sync.Mutex
 }
 
 type NotFoundError struct {
 	message string
 }
 
-func New() *storage {
+func New(filename string, hashMap map[string]int64, lastByteOffset int64) *storage {
 	return &storage{
-		fileName: "storage/log.txt",
-		mutex:    &sync.Mutex{},
+		fileName:       filename,
+		hashMap:        hashMap,
+		lastByteOffset: lastByteOffset,
+		mutex:          &sync.Mutex{},
 	}
 }
 
@@ -34,10 +44,12 @@ func (s *storage) Set(key string, value string) error {
 	}
 	defer file.Close()
 
-	_, err = file.WriteString(fmt.Sprintf("%s:%s\n", key, value))
+	bytes, err := file.WriteString(fmt.Sprintf("%s:%s\n", key, value))
 	if err != nil {
 		return err
 	}
+	s.hashMap[key] = s.lastByteOffset
+	s.lastByteOffset += int64(bytes)
 
 	return nil
 }
@@ -52,19 +64,37 @@ func (s *storage) Get(key string) (string, error) {
 	}
 	defer file.Close()
 
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+	offset, ok := s.hashMap[key]
+	if !ok {
+		return "", NewNotFoundError(key)
 	}
 
-	for i := len(lines) - 1; i >= 0; i-- {
-		// parse the key from the line. it is split by ":"
-		if strings.Split(lines[i], ":")[0] == key {
-			return strings.Split(lines[i], ":")[1], nil
+	reader := bufio.NewReader(file)
+	var byteOffset int64 = 0
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", err
 		}
+
+		// type assert offset to int64
+		if byteOffset == int64(offset) {
+			return strings.TrimSuffix(strings.Split(line, ":")[1], "\n"), nil
+		}
+
+		byteOffset += int64(len(line))
 	}
-	return "", NewNotFoundError(key)
+
+	return "", errors.New("it should be in the file but it's not")
+}
+
+func (s *storage) PrintHashMap() {
+	for key, value := range s.hashMap {
+		fmt.Printf("key: %s, byte offset: %d\n", key, value)
+	}
 }
 
 func NewNotFoundError(key string) *NotFoundError {
