@@ -88,18 +88,17 @@ func initializeStorage(fileName string) (*storage, error) {
 	var byteOffset int64 = 0
 	for {
 		line, err := reader.ReadString('\n')
-		if err != nil && err != io.EOF {
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
 			return nil, err
 		}
 
 		fmt.Printf("line: %s | byte offset: %d\n", strings.TrimSuffix(line, "\n"), byteOffset)
-
-		hashMap[strings.Split(line, ":")[0]] = byteOffset
+		key, _ := splitIntoKeyValue(line)
+		hashMap[key] = byteOffset
 		byteOffset += int64(len(line))
-
-		if err == io.EOF {
-			break
-		}
 	}
 
 	return New(fileName, hashMap, byteOffset), nil
