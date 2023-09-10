@@ -10,7 +10,8 @@ import (
 )
 
 func main() {
-	fileName := "storage/log.txt"
+	fileName := "storage/log.txt" // You could fix the code to get it from the command line argument.
+
 	storage, err := initializeStorage(fileName)
 	if err != nil {
 		fmt.Printf("Error while initializing a storage: %v\n", err)
@@ -20,14 +21,14 @@ func main() {
 	fmt.Println("+++++ Simple Database +++++")
 	fmt.Println("====================================")
 	fmt.Println("Enter the following number to execute them.")
-	fmt.Println("1: Append Enter a pair of key and value seprated by \":\".\nAnd then enter newline to pass the word.")
+	fmt.Printf("1: Append Enter a pair of key and value seprated by \"%s\".\nAnd then enter newline to pass the word.\n", keyValueDelimiter)
 	fmt.Println("2: GetEnter a key to find data.")
 	fmt.Println("3: Show all the key-value pairs.")
 	fmt.Println("0: Quit")
 
 	for {
 		fmt.Println("====================================")
-		option, err := readStdin("Enter the option numner: ")
+		option, err := readStdin("Enter the option number: ")
 		if err != nil {
 			fmt.Printf("Error while reading an option: %v", err)
 			continue
@@ -46,7 +47,7 @@ func main() {
 				fmt.Printf("Error while setting a value: %v\n", err)
 				continue
 			}
-			fmt.Printf("The key: %s\n", key)
+			fmt.Printf("key: %s\n", key)
 
 		case "2":
 			input, err := readStdin("Enter a key: ")
@@ -114,8 +115,9 @@ func readStdin(message string) (string, error) {
 	}
 	return strings.TrimSpace(text), nil
 }
+
 func splitIntoKeyValue(input string) (string, string) {
-	parts := strings.Split(input, ":")
+	parts := strings.Split(input, keyValueDelimiter)
 	return parts[0], parts[1]
 }
 

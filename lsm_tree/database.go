@@ -25,6 +25,10 @@ type NotFoundError struct {
 	message string
 }
 
+var keyValueDelimiter = ":"
+var recordDelimiter = "\n"
+var byteRecordDelimiter = byte('\n')
+
 func New(filename string, hashMap map[string]int64, lastByteOffset int64) *storage {
 	return &storage{
 		fileName:       filename,
@@ -38,13 +42,17 @@ func (s *storage) Set(key string, value string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	if strings.Contains(value, keyValueDelimiter) || strings.Contains(value, recordDelimiter) {
+		return fmt.Errorf("value cannot contain (%s) or (%s)", keyValueDelimiter, recordDelimiter)
+	}
+
 	file, err := os.OpenFile(s.fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	bytes, err := file.WriteString(fmt.Sprintf("%s:%s\n", key, value))
+	bytes, err := file.WriteString(fmt.Sprintf("%s%s%s%s", key, keyValueDelimiter, value, recordDelimiter))
 	if err != nil {
 		return err
 	}
@@ -72,6 +80,7 @@ func (s *storage) Get(key string) (string, error) {
 	reader := bufio.NewReader(file)
 	var byteOffset int64 = 0
 	for {
+		line, err := reader.ReadString(byteRecordDelimiter)
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
@@ -80,9 +89,8 @@ func (s *storage) Get(key string) (string, error) {
 			return "", err
 		}
 
-		// type assert offset to int64
 		if byteOffset == int64(offset) {
-			return strings.TrimSuffix(strings.Split(line, ":")[1], "\n"), nil
+			return strings.TrimSuffix(strings.Split(line, ":")[1], recordDelimiter), nil
 		}
 
 		byteOffset += int64(len(line))
