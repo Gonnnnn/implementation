@@ -21,7 +21,7 @@ func main() {
 	fmt.Println("+++++ Simple Database +++++")
 	fmt.Println("====================================")
 	fmt.Println("Enter the following number to execute them.")
-	fmt.Printf("1: Append Enter a pair of key and value seprated by \"%s\".\nAnd then enter newline to pass the word.\n", keyValueDelimiter)
+	fmt.Printf("1: Append Enter a pair of key and value seprated by \"%s\".\nAnd then enter newline to pass the word.\n", KeyValueDelimiter)
 	fmt.Println("2: GetEnter a key to find data.")
 	fmt.Println("3: Show all the key-value pairs.")
 	fmt.Println("0: Quit")
@@ -78,6 +78,31 @@ func main() {
 
 func initializeStorage(fileName string) (*storage, error) {
 	fmt.Println("Loading the data...")
+
+	file, err := os.Stat(fileName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if file.IsDir() {
+		return nil, errors.New("the given file is a directory")
+	}
+
+	if !strings.HasSuffix(file.Name(), ".txt") {
+		return nil, errors.New("the given file is not a text file")
+	}
+
+	index, err := initializeIndex(fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewStorage(index), nil
+
+}
+
+func initializeIndex(fileName string) (*Index, error) {
 	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
@@ -104,8 +129,7 @@ func initializeStorage(fileName string) (*storage, error) {
 		byteOffset += int64(len(line))
 	}
 
-	return New(fileName, hashMap, byteOffset), nil
-
+	return NewIndex(fileName, hashMap, byteOffset), nil
 }
 
 func readStdin(message string) (string, error) {
