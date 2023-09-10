@@ -1,13 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"strconv"
 )
 
 func main() {
-	fmt.Println("Enter words. Enter newline to pass the word. Enter an empty string to break.")
-	
+	storage := New()
+
+	fmt.Println("Enter words. Enter newline to pass the word. Enter \"QUIT\" to break.")
+
 	for {
 		var input string
 		fmt.Print("Enter: ")
@@ -19,10 +21,16 @@ func main() {
 		if input == "QUIT" {
 			break
 		}
-		fmt.Printf("The key: %d\n", set(input))
+
+		key, err := storage.Set(input)
+		if err != nil {
+			fmt.Printf("Error while setting a value: %v", err)
+			continue
+		}
+		fmt.Printf("The key: %s\n", key)
 	}
 
-	fmt.Println("Enter a key to find data. Enter 0 to break.")
+	fmt.Println("Enter a key to find data. Enter \"QUIT\" to break.")
 	for {
 		var input string
 		fmt.Print("Enter: ")
@@ -31,21 +39,23 @@ func main() {
 			fmt.Printf("Error while reading a key: %v", err)
 			continue
 		}
-		if input == "0" {
+		if input == "QUIT" {
 			break
 		}
-		key, err := strconv.Atoi(input)
-		if err != nil {
-			fmt.Println("Error while converting the key into int type:", err)
-			continue
-		}
 
-		value, err := get(key)
+		value, err := storage.Get(input)
 		if err != nil {
-			fmt.Println("No value corresponding to the key.")
-			continue
+			fmt.Printf("Error while getting a value: %v", assertGetError(err))
 		}
 
 		fmt.Printf("Value: %s\n", value)
 	}
+}
+
+func assertGetError(err error) error {
+	notFoundError := &NotFoundError{}
+	if errors.As(err, &notFoundError) {
+		return notFoundError
+	}
+	return err
 }
