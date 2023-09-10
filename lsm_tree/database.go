@@ -3,11 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math/rand"
 	"os"
 	"strings"
 	"sync"
-	"time"
 )
 
 type storage struct {
@@ -26,23 +24,22 @@ func New() *storage {
 	}
 }
 
-func (s *storage) Set(value string) (string, error) {
+func (s *storage) Set(key string, value string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	file, err := os.OpenFile(s.fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer file.Close()
 
-	key := generateRandomID()
 	_, err = file.WriteString(fmt.Sprintf("%s:%s\n", key, value))
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return key, nil
+	return nil
 }
 
 func (s *storage) Get(key string) (string, error) {
@@ -78,9 +75,4 @@ func NewNotFoundError(key string) *NotFoundError {
 
 func (e *NotFoundError) Error() string {
 	return e.message
-}
-
-func generateRandomID() string {
-	rand.Seed(time.Now().UnixNano())
-	return fmt.Sprintf("%d", rand.Intn(100_000_000_000))
 }
