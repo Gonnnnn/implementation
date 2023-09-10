@@ -89,10 +89,12 @@ func initializeStorage(fileName string) (*storage, error) {
 	var byteOffset int64 = 0
 	for {
 		line, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
+
 			return nil, err
 		}
 

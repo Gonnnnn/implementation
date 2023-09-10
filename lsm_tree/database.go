@@ -81,11 +81,11 @@ func (s *storage) Get(key string) (string, error) {
 	var byteOffset int64 = 0
 	for {
 		line, err := reader.ReadString(byteRecordDelimiter)
-		line, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
 			return "", err
 		}
 
