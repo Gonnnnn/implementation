@@ -57,7 +57,8 @@ func (s *storage) newFilePath() string {
 }
 
 func (s *storage) Get(key string) (string, error) {
-	for _, index := range s.indices{
+	for i := 0; i < len(s.indices); i++{
+		index := s.indices[len(s.indices) - 1 - i]
 		value, err := index.Get(key)
 		notFoundError := &NotFoundError{}
 		if errors.As(err, &notFoundError){
