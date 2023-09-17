@@ -7,19 +7,19 @@ import (
 
 func TestSet(t *testing.T) {
 	t.Run("Test Case 1", func(t *testing.T) {
-		// TODO: Make Set testable and Implement a test.
+		// TODO(#1): Make Set testable and Implement a test.
 	})
 }
 
 func TestGet(t *testing.T) {
     t.Run("Test Case 1", func(t *testing.T) {
-		// TODO: Make Get testable and Implement a test.
+		// TODO(#1): Make Get testable and Implement a test.
 	})
 }
 
 func TestPrintHashMap(t *testing.T) {
 	t.Run("Test Case 1", func(t *testing.T) {
-		// TODO: Make PrintHashMap testable and Implement a test.
+		// TODO(#1): Make PrintHashMap testable and Implement a test.
 	})
 }
 
