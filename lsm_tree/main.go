@@ -93,8 +93,8 @@ func initializeStorage(dirPath string) (*storage, error) {
 			return nil, errors.New("the given file is a directory")
 		}
 
-		if !strings.HasSuffix(file.Name(), ".txt") {
-			return nil, errors.New("the given file is not a text file")
+		if !strings.Contains(file.Name(), ".") {
+			return nil, fmt.Errorf("the given file has an extension: %s", file.Name())
 		}
 
 		index, err := initializeIndex(fmt.Sprintf("%s/%s", dirPath, file.Name()))
