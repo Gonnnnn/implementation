@@ -21,6 +21,13 @@ type Index struct {
 	mutex *sync.Mutex
 }
 
+var (
+	// Variables here can be overwritten in unit tests.
+	// https://github.com/GoogleCloudPlatform/esp-v2/blob/master/src/go/gcsrunner/fetch_config.go#L38C1-L38C1
+	osOpenFile = func(name string, flag int, perm os.FileMode) (*os.File, error) { return os.OpenFile(name, flag, perm)}
+
+)
+
 var KeyValueDelimiter = ":"
 var RecordDelimiter = "\n"
 var byteRecordDelimiter = byte('\n')
@@ -42,7 +49,7 @@ func (i *Index) Set(key string, value string) error {
 		return fmt.Errorf("value cannot contain (%s) or (%s)", KeyValueDelimiter, RecordDelimiter)
 	}
 
-	file, err := os.OpenFile(i.filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := osOpenFile(i.filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
