@@ -10,9 +10,9 @@ import (
 )
 
 func main() {
-	fileName := "storage/log.txt" // You could fix the code to get it from the command line argument.
+	dirPath := "storage" // You could fix the code to get it from the command line argument.
 
-	storage, err := initializeStorage(fileName)
+	storage, err := initializeStorage(dirPath)
 	if err != nil {
 		fmt.Printf("Error while initializing a storage: %v\n", err)
 		return
@@ -76,34 +76,41 @@ func main() {
 	}
 }
 
-func initializeStorage(fileName string) (*storage, error) {
+func initializeStorage(dirPath string) (*storage, error) {
 	fmt.Println("Loading the data...")
 
-	file, err := os.Stat(fileName)
+	files, err := os.ReadDir(dirPath)
+    if err != nil {
+        return nil, err
+    }
 
-	if err != nil {
-		return nil, err
-	}
+	indices := []*Index{}
+    // Iterate over the files and print their names
+    for _, file := range files {
+		fmt.Printf("Loading file \"%s\"\n", file.Name())
 
-	if file.IsDir() {
-		return nil, errors.New("the given file is a directory")
-	}
+		if file.IsDir() {
+			return nil, errors.New("the given file is a directory")
+		}
 
-	if !strings.HasSuffix(file.Name(), ".txt") {
-		return nil, errors.New("the given file is not a text file")
-	}
+		if !strings.HasSuffix(file.Name(), ".txt") {
+			return nil, errors.New("the given file is not a text file")
+		}
 
-	index, err := initializeIndex(fileName)
-	if err != nil {
-		return nil, err
-	}
+		index, err := initializeIndex(fmt.Sprintf("%s/%s", dirPath, file.Name()))
+		if err != nil {
+			return nil, err
+		}
 
-	return NewStorage(index), nil
+		indices = append(indices, index)
+    }
+
+	return NewStorage(indices, dirPath), nil
 
 }
 
-func initializeIndex(fileName string) (*Index, error) {
-	file, err := os.Open(fileName)
+func initializeIndex(filePath string) (*Index, error) {
+	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +136,7 @@ func initializeIndex(fileName string) (*Index, error) {
 		byteOffset += int64(len(line))
 	}
 
-	return NewIndex(fileName, hashMap, byteOffset), nil
+	return NewIndex(filePath, hashMap, byteOffset), nil
 }
 
 func readStdin(message string) (string, error) {
