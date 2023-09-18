@@ -7,7 +7,6 @@ import (
 )
 
 type storage struct {
-	// TODO: Handle multiple files and indexes.
 	// The group of indices sorted in an ascending order.
 	indices []*Index
 
